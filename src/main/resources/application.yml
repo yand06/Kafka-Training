@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: Kafka-Supriyandi-La-Awe
+    version: 1.0.0
+  banner:
+    location: classpath:/banner-text.txt
+  dataSource:
+    url: jdbc:postgresql://${KAFKA_TRAINING_DB_HOST}:${KAFKA_TRAINING_DB_PORT}/${KAFKA_TRAINING_DB_NAME}
+    username: ${KAFKA_TRAINING_DB_USERNAME}
+    password: ${KAFKA_TRAINING_DB_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+        format_sql: true
+        show_sql: false
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      ddl-auto: none
+
+  #KAFKA CONFIGURATION
+  kafka:
+    bootstrap-servers: ${KAFKA_TRAINING_BOOTSTRAP_KFK_SERVER}
+    consumer:
+      acks: all
+      retries: 10
+      enable-auto-commit: true
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 120000
+        linger.ms: 10
+        compression.type: lz4
+        batch.size: 32768
+        spring.json.add.type.headers: false
+        spring:
+          deserializer:
+            key:
+              delegate:
+                class: org.springframework.kafka.common.serialization.StringDeserializer
+            value:
+              delegate:
+                class: org.springframework.kafka.common.serialization.StringDeserializer
+          #KAFKA TRUSTED PACKAGES FOR JSON DESERIALIZATION AND DEFAULT VALUE TYPE
+          json:
+            trusted:
+              packages: "*"
+            value:
+              default-type: com.indivaragroup.training.kafka.transaction.dto.response.RestApiResponse
+#REQUEST TOPIC
+request-topic:
+  create-transaction-topic: create-transaction-po
+  create-log-topic: create-log-po
+request-reply-topic:
+  create-wallet-topic: create-wallet-co
+  create-log-topic: create-log-co
+server:
+  port: 8181
