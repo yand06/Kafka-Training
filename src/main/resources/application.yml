@@ -14,21 +14,22 @@ spring:
         globally_quoted_identifiers: true
         format_sql: true
         show_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
       ddl-auto: none
+    open-in-view: false
 
-  #KAFKA CONFIGURATION
+  # Kafka Configuration
   kafka:
-    bootstrap-servers: ${KAFKA_TRAINING_BOOTSTRAP_KFK_SERVER}
-    consumer:
+    bootstrap-servers: ${KAFKA_TRAINING_BOOTSTRAP_KFK_SERVER:localhost:9092}
+    # Producer Configuration
+    producer:
       acks: all
       retries: 10
-      enable-auto-commit: true
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         enable.idempotence: true
         max.in.flight.requests.per.connection: 5
@@ -36,27 +37,40 @@ spring:
         linger.ms: 10
         compression.type: lz4
         batch.size: 32768
+    # Consumer Configuration
+    consumer:
+      group-id: wallet-transaction-group
+      enable-auto-commit: true
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
         spring.json.add.type.headers: false
-        spring:
-          deserializer:
-            key:
-              delegate:
-                class: org.springframework.kafka.common.serialization.StringDeserializer
-            value:
-              delegate:
-                class: org.springframework.kafka.common.serialization.StringDeserializer
-          #KAFKA TRUSTED PACKAGES FOR JSON DESERIALIZATION AND DEFAULT VALUE TYPE
-          json:
-            trusted:
-              packages: "*"
-            value:
-              default-type: com.indivaragroup.training.kafka.transaction.dto.response.RestApiResponse
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.indivaragroup.training.kafka.dto.event.TransactionEvent
+        max.poll.records: 500
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+
 #REQUEST TOPIC
-request-topic:
-  create-transaction-topic: create-transaction-po
-  create-log-topic: create-log-po
-request-reply-topic:
-  create-wallet-topic: create-wallet-co
-  create-log-topic: create-log-co
+kafka:
+  topic:
+    transaction-events: transaction-events
+    wallet-events: wallet-events
+    create-transaction: create-transaction-po
+    create-log: create-log-po
+    create-wallet: create-wallet-co
+    create-log-reply: create-log-co
+
 server:
-  port: 8181
+  port: ${KAFKA_TRAINING_SERVER_PORT}
+
+logging:
+  level:
+    root: INFO
+    com.indivaragroup.training.kafka: DEBUG
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

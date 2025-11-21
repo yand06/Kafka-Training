@@ -1,5 +1,6 @@
 package com.indivaragroup.training.kafka.service.implementation.module;
 
+import com.indivaragroup.training.kafka.configuration.kafka.producer.TransactionProducer;
 import com.indivaragroup.training.kafka.dto.entity.TransactionEntityDTO;
 import com.indivaragroup.training.kafka.dto.request.TransactionRequest;
 import com.indivaragroup.training.kafka.dto.response.RestApiResponse;
@@ -20,22 +21,31 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
 
     private final MTransactionRepositories mTransactionRepositories;
+    private final TransactionProducer transactionProducer;
 
     @Override
     public RestApiResponse<TransactionResponse> createTransaction(UUID idWallet, TransactionRequest transactionRequest) {
         TransactionEntityDTO transactionEntityDTO = TransactionEntityDTO.builder()
                 .transactionEntityDTOId(UUID.randomUUID())
                 .transactionEntityDTOType(transactionRequest.getTransactionEntityDTOType())
+                .transactionEntityDTOAmount(transactionRequest.getTransactionEntityDTOAmount())
                 .transactionEntityDTOStatus("PENDING")
                 .transactionEntityDTOCreatedAt(LocalDateTime.now())
                 .transactionEntityDTOIdWallet(idWallet)
                 .build();
 
         mTransactionRepositories.save(transactionEntityDTO);
+        System.out.println();
+        log.info("Transaction saved to database: {}", transactionEntityDTO.getTransactionEntityDTOId());
+
+        System.out.println();
+        transactionProducer.sendTransactionEvent(transactionEntityDTO);
+        log.info("Transaction send to kafka: {}", transactionEntityDTO.getTransactionEntityDTOId());
 
         TransactionResponse transactionResponse = TransactionResponse.builder()
                 .transactionEntityDTOId(transactionEntityDTO.getTransactionEntityDTOId())
                 .transactionEntityDTOType(transactionEntityDTO.getTransactionEntityDTOType())
+                .transactionEntityDTOAmount(transactionEntityDTO.getTransactionEntityDTOAmount())
                 .transactionEntityDTOStatus(transactionEntityDTO.getTransactionEntityDTOStatus())
                 .transactionEntityDTOCreatedAt(transactionEntityDTO.getTransactionEntityDTOCreatedAt())
                 .transactionEntityDTOIdWallet(transactionEntityDTO.getTransactionEntityDTOIdWallet())
