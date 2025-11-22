@@ -21,10 +21,8 @@ spring:
       ddl-auto: none
     open-in-view: false
 
-  # Kafka Configuration
   kafka:
     bootstrap-servers: ${KAFKA_TRAINING_BOOTSTRAP_KFK_SERVER:localhost:9092}
-    # Producer Configuration
     producer:
       acks: all
       retries: 10
@@ -37,7 +35,6 @@ spring:
         linger.ms: 10
         compression.type: lz4
         batch.size: 32768
-    # Consumer Configuration
     consumer:
       group-id: wallet-transaction-group
       enable-auto-commit: true
@@ -52,7 +49,6 @@ spring:
         session.timeout.ms: 30000
         heartbeat.interval.ms: 10000
 
-#REQUEST TOPIC
 kafka:
   topic:
     transaction-events: transaction-events

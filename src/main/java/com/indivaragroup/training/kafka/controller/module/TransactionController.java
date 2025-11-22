@@ -4,6 +4,7 @@ import com.indivaragroup.training.kafka.dto.request.TransactionRequest;
 import com.indivaragroup.training.kafka.dto.response.RestApiResponse;
 import com.indivaragroup.training.kafka.dto.response.TransactionResponse;
 import com.indivaragroup.training.kafka.service.interfacing.module.TransactionService;
+import com.indivaragroup.training.kafka.utility.RestApiPathUtility;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +14,12 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/transaction")
+@RequestMapping(RestApiPathUtility.API_PATH + RestApiPathUtility.API_PATH_VERSION + RestApiPathUtility.API_PATH_TRANSACTION)
 public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @PostMapping("/create-transaction/{idWallet}")
+    @PostMapping(RestApiPathUtility.API_PATH_TRANSACTION_CREATE + RestApiPathUtility.API_PATH_WALLET_ID)
     public ResponseEntity<RestApiResponse<TransactionResponse>> createTransaction(
             @PathVariable UUID idWallet,
             @Valid @RequestBody TransactionRequest transactionRequest
